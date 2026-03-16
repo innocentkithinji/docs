@@ -1,0 +1,285 @@
+---
+title: "Register tools"
+description: "Give your agent the ability to take actions on your website"
+icon: "wrench"
+---
+
+## Overview
+
+Tools let your AI agent do more than just answer questions. By registering tools, you give the agent the ability to perform actions on your website -- add items to a cart, navigate to a page, look up account details, or anything else you can do with JavaScript.
+
+When a visitor asks something that requires an action, the agent automatically picks the right tool, passes the correct parameters, and returns the result in the conversation.
+
+---
+
+## Register a tool
+
+Use the `registerTool` method on your Flunkie instance:
+
+```typescript
+import Flunkie from "flunkie";
+
+const flunkie = Flunkie.initialize({
+  key: "flk_your_api_key",
+  chatbotId: 123,
+});
+
+flunkie.registerTool({
+  name: "add_to_cart",
+  description: "Add a product to the shopping cart",
+  inputSchema: {
+    type: "object",
+    properties: {
+      item: { type: "string", description: "Product name or SKU" },
+      quantity: { type: "integer", description: "Number of items to add" },
+    },
+    required: ["item"],
+  },
+  execute: async (params) => {
+    const res = await fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+    const data = await res.json();
+    return `Added ${params.quantity || 1}x ${params.item} to cart. Total: $${data.total}`;
+  },
+});
+```
+
+---
+
+## Tool definition
+
+Each tool has four fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | Unique identifier in `snake_case`. The agent uses this internally |
+| `description` | `string` | Plain-English explanation of what the tool does. The agent reads this to decide when to use it |
+| `inputSchema` | `object` | A [JSON Schema](https://json-schema.org/) describing the parameters the tool accepts |
+| `execute` | `function` | The function that runs when the agent calls the tool. Receives the parameters and must return a `string` |
+
+### Writing good descriptions
+
+The `description` field is what the agent sees when deciding which tool to use. Be specific about **when** and **why** the tool should be called:
+
+```typescript
+// Too vague -- agent won't know when to use it
+description: "Does something with products"
+
+// Good -- agent understands the trigger and purpose
+description: "Add a product to the visitor's shopping cart when they want to buy something"
+```
+
+---
+
+## Input schema
+
+The `inputSchema` follows [JSON Schema](https://json-schema.org/) format. Here are the supported types:
+
+| JSON Schema type | Description | Example |
+|------------------|-------------|---------|
+| `string` | Text values | Names, emails, URLs |
+| `integer` | Whole numbers | Quantities, IDs |
+| `number` | Decimal numbers | Prices, percentages |
+| `boolean` | True / false | Toggles, flags |
+| `array` | Lists | Tags, selected items |
+| `object` | Nested objects | Address, preferences |
+
+### Example schema with all features
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "string",
+      "description": "Search keywords"
+    },
+    "category": {
+      "type": "string",
+      "description": "Product category to filter by",
+      "enum": ["electronics", "clothing", "books"]
+    },
+    "max_price": {
+      "type": "number",
+      "description": "Maximum price in USD"
+    },
+    "in_stock": {
+      "type": "boolean",
+      "description": "Only show items currently in stock"
+    }
+  },
+  "required": ["query"]
+}
+```
+
+<Tip>
+  Add a `description` to every property. The agent uses these to understand what values to pass.
+</Tip>
+
+---
+
+## The execute function
+
+The `execute` function runs in the browser when the agent calls the tool. It has full access to the DOM, `localStorage`, `fetch`, and any other browser API.
+
+**Rules:**
+- Must return a `string` (or `Promise<string>`)
+- Can be synchronous or asynchronous
+- The returned string is sent back to the agent as the tool's result
+
+```typescript
+// Synchronous
+execute: (params) => {
+  return `Current page: ${document.title}`;
+}
+
+// Asynchronous
+execute: async (params) => {
+  const res = await fetch(`/api/orders/${params.orderId}`);
+  const order = await res.json();
+  return `Order ${order.id}: ${order.status}, shipped ${order.shipped_at}`;
+}
+```
+
+<Warning>
+  Never return sensitive data (passwords, tokens, PII) from a tool. The result is sent to the AI agent and may appear in the chat.
+</Warning>
+
+---
+
+## Examples
+
+### Navigate to a page
+
+```typescript
+flunkie.registerTool({
+  name: "navigate",
+  description: "Navigate the visitor to a specific page on the website",
+  inputSchema: {
+    type: "object",
+    properties: {
+      url: { type: "string", description: "Relative URL path like /pricing or /docs" },
+    },
+    required: ["url"],
+  },
+  execute: (params) => {
+    window.location.href = params.url as string;
+    return `Navigating to ${params.url}`;
+  },
+});
+```
+
+### Search products
+
+```typescript
+flunkie.registerTool({
+  name: "search_products",
+  description: "Search the product catalog and return matching results",
+  inputSchema: {
+    type: "object",
+    properties: {
+      query: { type: "string", description: "Search keywords" },
+      limit: { type: "integer", description: "Max results to return" },
+    },
+    required: ["query"],
+  },
+  execute: async (params) => {
+    const res = await fetch(`/api/products?q=${encodeURIComponent(params.query as string)}&limit=${params.limit || 5}`);
+    const products = await res.json();
+    return products.map((p: any) => `${p.name} - $${p.price}`).join("\n");
+  },
+});
+```
+
+### Toggle dark mode
+
+```typescript
+flunkie.registerTool({
+  name: "toggle_dark_mode",
+  description: "Switch between light and dark mode on the website",
+  inputSchema: {
+    type: "object",
+    properties: {
+      mode: {
+        type: "string",
+        description: "The theme to switch to",
+        enum: ["light", "dark"],
+      },
+    },
+    required: ["mode"],
+  },
+  execute: (params) => {
+    document.documentElement.setAttribute("data-theme", params.mode as string);
+    return `Switched to ${params.mode} mode`;
+  },
+});
+```
+
+### Get page context
+
+```typescript
+flunkie.registerTool({
+  name: "get_page_info",
+  description: "Get information about the page the visitor is currently viewing",
+  inputSchema: {
+    type: "object",
+    properties: {},
+  },
+  execute: () => {
+    return JSON.stringify({
+      title: document.title,
+      url: window.location.href,
+      referrer: document.referrer,
+    });
+  },
+});
+```
+
+---
+
+## Listening for tool results
+
+You can listen for tool results to update your UI or trigger side effects:
+
+```typescript
+const unsubscribe = flunkie.onToolResult((results) => {
+  for (const result of results) {
+    console.log(`Tool: ${result.tool_name}`);
+    console.log(`Result: ${result.content}`);
+    console.log(`Meta:`, result.meta);
+  }
+});
+
+// Stop listening
+unsubscribe();
+```
+
+---
+
+## Listing registered tools
+
+Retrieve all registered tools and their schemas:
+
+```typescript
+const tools = flunkie.webMcpTools();
+
+for (const tool of tools) {
+  console.log(tool.name, tool.description);
+}
+```
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Form tools" icon="rectangle-list" href="/widget/forms">
+    Turn HTML forms into tools with zero JavaScript.
+  </Card>
+  <Card title="Widget integration" icon="puzzle-piece" href="/widget/integration">
+    Learn about embedding and customization options.
+  </Card>
+</CardGroup>

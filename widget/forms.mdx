@@ -1,0 +1,290 @@
+---
+title: "Form tools"
+description: "Turn any HTML form into an agent-callable tool with zero JavaScript"
+icon: "rectangle-list"
+---
+
+## Overview
+
+Form tools let you turn any HTML form on your page into a tool the AI agent can use -- without writing a single line of JavaScript. Just add a few `flunkie-*` attributes to your existing form markup and the agent can fill in fields, select options, and optionally submit the form on behalf of the visitor.
+
+This is perfect for lead capture forms, contact forms, search filters, booking forms, and any other form-based interaction.
+
+---
+
+## Quick start
+
+Add `flunkie-tool-name` to any `<form>` element:
+
+```html
+<form
+  flunkie-tool-name="submit_contact"
+  flunkie-tool-description="Submit a contact inquiry from the visitor"
+>
+  <input name="name" type="text" required
+    flunkie-param-description="The visitor's full name" />
+
+  <input name="email" type="email" required
+    flunkie-param-description="The visitor's email address" />
+
+  <textarea name="message"
+    flunkie-param-description="The message or question"></textarea>
+
+  <button type="submit">Send</button>
+</form>
+```
+
+The widget automatically detects this form and registers it as a tool. When the agent decides to use it, it fills in the fields and lets the visitor review before submitting.
+
+---
+
+## Form attributes
+
+### On the `<form>` element
+
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `flunkie-tool-name` | Yes | Unique name for the tool (use `snake_case`) |
+| `flunkie-tool-description` | No | Plain-English description the agent reads to decide when to use this form |
+| `flunkie-auto-submit` | No | If present, the agent submits the form automatically after filling it |
+
+### On `<input>`, `<select>`, and `<textarea>` elements
+
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `flunkie-param-description` | No | Description of what this field is for. Helps the agent fill it correctly |
+
+<Tip>
+  Always add `flunkie-param-description` to your fields. Without it, the agent only sees the field's `name` attribute, which may not be descriptive enough.
+</Tip>
+
+---
+
+## Fill-only vs auto-submit
+
+By default, the agent fills in the form fields but **does not submit**. The visitor sees the filled form and can review or modify the values before clicking submit themselves.
+
+To let the agent submit automatically, add `flunkie-auto-submit`:
+
+```html
+<!-- Fill only (default) -- visitor reviews and submits -->
+<form flunkie-tool-name="search_flights"
+      flunkie-tool-description="Search for available flights">
+  ...
+</form>
+
+<!-- Auto-submit -- agent fills and submits -->
+<form flunkie-tool-name="subscribe_newsletter"
+      flunkie-tool-description="Subscribe the visitor to the newsletter"
+      flunkie-auto-submit>
+  ...
+</form>
+```
+
+---
+
+## Handling auto-submit events
+
+When auto-submit is enabled, the form dispatches a standard `submit` event with an extra `agentInvoked` flag. Use `respondWith` to return a result to the agent:
+
+```javascript
+const form = document.querySelector("form[flunkie-tool-name='subscribe_newsletter']");
+
+form.addEventListener("submit", (e) => {
+  if (e.agentInvoked) {
+    // The agent triggered this submission
+    e.respondWith(
+      fetch("/api/subscribe", {
+        method: "POST",
+        body: new FormData(e.target),
+      })
+        .then((res) => res.json())
+        .then((data) => `Subscribed ${data.email} successfully`)
+    );
+  }
+  // Otherwise, normal user-initiated submit
+});
+```
+
+<Note>
+  If you don't call `e.respondWith()`, the agent receives a default "Form submitted" confirmation.
+</Note>
+
+---
+
+## Auto-mapped constraints
+
+The widget automatically converts your HTML validation attributes into JSON Schema constraints that the agent understands:
+
+| HTML attribute | JSON Schema equivalent | Example |
+|---------------|----------------------|---------|
+| `required` | Added to `required` array | `<input required>` |
+| `min` / `max` | `minimum` / `maximum` | `<input type="number" min="1" max="100">` |
+| `minlength` / `maxlength` | `minLength` / `maxLength` | `<input minlength="3" maxlength="50">` |
+| `pattern` | `pattern` (regex) | `<input pattern="[A-Z]{3}">` |
+| `<select>` options | `enum` values | `<option value="us">US</option>` |
+| Radio group | `enum` with collected values | `<input type="radio" value="yes">` |
+
+This means your existing validation logic doubles as instructions for the agent.
+
+---
+
+## Supported input types
+
+| HTML input type | JSON Schema type | Notes |
+|----------------|-----------------|-------|
+| `text`, `email`, `url`, `tel`, `search` | `string` | Standard text fields |
+| `date`, `time`, `datetime-local` | `string` | Date/time as strings |
+| `number`, `range` | `number` | Numeric values |
+| `checkbox` | `boolean` | True/false toggle |
+| `radio` | `string` | With `enum` from group values |
+| `<select>` | `string` | With `enum` from options |
+| `<textarea>` | `string` | Long text |
+| `file`, `submit`, `button`, `reset` | -- | Skipped automatically |
+
+---
+
+## Examples
+
+### Lead capture form
+
+```html
+<form
+  flunkie-tool-name="capture_lead"
+  flunkie-tool-description="Capture the visitor's contact information for a sales follow-up"
+  flunkie-auto-submit
+>
+  <label>
+    Name
+    <input name="name" type="text" required
+      flunkie-param-description="Full name of the visitor" />
+  </label>
+
+  <label>
+    Email
+    <input name="email" type="email" required
+      flunkie-param-description="Work email address" />
+  </label>
+
+  <label>
+    Company
+    <input name="company" type="text"
+      flunkie-param-description="Company or organization name" />
+  </label>
+
+  <label>
+    Team size
+    <select name="team_size" flunkie-param-description="Number of people on their team">
+      <option value="1-10">1-10</option>
+      <option value="11-50">11-50</option>
+      <option value="51-200">51-200</option>
+      <option value="200+">200+</option>
+    </select>
+  </label>
+
+  <button type="submit">Get in touch</button>
+</form>
+```
+
+### Booking form
+
+```html
+<form
+  flunkie-tool-name="book_appointment"
+  flunkie-tool-description="Book an appointment for the visitor"
+>
+  <input name="date" type="date" required
+    flunkie-param-description="Preferred appointment date" />
+
+  <input name="time" type="time" required
+    flunkie-param-description="Preferred time of day" />
+
+  <select name="service" required
+    flunkie-param-description="Type of service requested">
+    <option value="consultation">Consultation</option>
+    <option value="demo">Product demo</option>
+    <option value="support">Technical support</option>
+  </select>
+
+  <textarea name="notes"
+    flunkie-param-description="Any additional notes or requests"></textarea>
+
+  <button type="submit">Book</button>
+</form>
+```
+
+### Search / filter form
+
+```html
+<form
+  flunkie-tool-name="filter_products"
+  flunkie-tool-description="Filter the product list based on visitor preferences"
+  flunkie-auto-submit
+>
+  <input name="query" type="search"
+    flunkie-param-description="Search keywords" />
+
+  <select name="category"
+    flunkie-param-description="Product category">
+    <option value="">All categories</option>
+    <option value="shoes">Shoes</option>
+    <option value="shirts">Shirts</option>
+    <option value="accessories">Accessories</option>
+  </select>
+
+  <input name="min_price" type="number" min="0"
+    flunkie-param-description="Minimum price in USD" />
+
+  <input name="max_price" type="number" min="0"
+    flunkie-param-description="Maximum price in USD" />
+
+  <label>
+    <input name="in_stock" type="checkbox"
+      flunkie-param-description="Only show items currently in stock" />
+    In stock only
+  </label>
+
+  <button type="submit">Apply filters</button>
+</form>
+```
+
+---
+
+## Dynamic forms
+
+The widget uses a `MutationObserver` to automatically detect forms added to the page after initial load. If you dynamically insert a form with `flunkie-tool-name`, it will be picked up automatically.
+
+You can also trigger a manual scan:
+
+```typescript
+flunkie.scanForms();
+```
+
+### Shadow DOM support
+
+If your forms live inside a Shadow DOM (e.g., in a Web Component), you can scan them directly:
+
+```typescript
+import { FormScanner } from "flunkie";
+
+const shadow = myComponent.shadowRoot;
+const scanner = new FormScanner(shadow);
+scanner.scan();     // One-time scan
+scanner.observe();  // Watch for new forms
+
+// Clean up
+scanner.disconnect();
+```
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Register tools" icon="wrench" href="/widget/tools">
+    Register tools programmatically for custom logic.
+  </Card>
+  <Card title="Widget integration" icon="puzzle-piece" href="/widget/integration">
+    Learn about embedding and customization options.
+  </Card>
+</CardGroup>

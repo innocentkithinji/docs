@@ -1,0 +1,162 @@
+---
+title: "Widget integration"
+description: "Add the Flunkie chatbot widget to any website in minutes"
+icon: "puzzle-piece"
+---
+
+## Overview
+
+The Flunkie widget is a drop-in chatbot that connects your website visitors to your AI agent. It runs as a [Web Component](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) with full Shadow DOM isolation, so it won't interfere with your existing styles or scripts.
+
+There are two ways to add the widget to your site:
+
+<CardGroup cols={2}>
+  <Card title="Script tag" icon="code" href="#script-tag">
+    Paste one line of HTML. No build tools needed.
+  </Card>
+  <Card title="SDK (npm)" icon="npm" href="#sdk-npm">
+    Full programmatic control with TypeScript support.
+  </Card>
+</CardGroup>
+
+---
+
+## Script tag
+
+The fastest way to get started. Add a single `<script>` tag before your closing `</body>` tag:
+
+```html index.html
+<script
+  src="https://your-cdn.com/widget/chatbot-widget.js"
+  data-chatbot-id="YOUR_CHATBOT_ID"
+></script>
+```
+
+That's it. The widget auto-injects itself into the page, fetches its configuration from the Flunkie API, and opens a chat session for each visitor.
+
+### Attributes
+
+| Attribute | Required | Description |
+|-----------|----------|-------------|
+| `data-chatbot-id` | Yes | Your chatbot's numeric ID from the dashboard |
+| `data-api-url` | No | Custom API base URL. Defaults to the script's origin |
+
+<Tip>
+  You'll find your chatbot ID in the **Dashboard** under **Settings > Widget**.
+</Tip>
+
+---
+
+## SDK (npm)
+
+Install the package for full programmatic control:
+
+```bash
+npm install flunkie
+```
+
+Then initialize in your application:
+
+```typescript app.ts
+import Flunkie from "flunkie";
+
+const flunkie = Flunkie.initialize({
+  key: "flk_your_api_key",   // required
+  chatbotId: 123,             // required
+  apiUrl: "https://api.your-domain.com", // optional
+});
+```
+
+### Options
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `key` | `string` | Yes | Your API key. Must start with `flk_` |
+| `chatbotId` | `number` | Yes | Your chatbot's numeric ID |
+| `apiUrl` | `string` | No | Custom API base URL. Defaults to `window.location.origin` |
+
+The `initialize` call returns a `FlunkieInstance` you can use to [register tools](/widget/tools), [scan forms](/widget/forms), listen for events, and clean up:
+
+```typescript
+// Listen for tool results from the agent
+const unsubscribe = flunkie.onToolResult((results) => {
+  console.log("Agent used tools:", results);
+});
+
+// Clean up when done
+flunkie.destroy();
+```
+
+<Warning>
+  Calling `Flunkie.initialize()` more than once on the same page is a no-op. The widget prevents duplicate instances automatically.
+</Warning>
+
+---
+
+## How it works
+
+Once loaded, the widget follows this sequence:
+
+<Steps>
+  <Step title="Fetch configuration">
+    The widget calls `GET /api/public/chatbots/{id}/config` to retrieve your chatbot's appearance settings, welcome message, quick prompts, and feature flags.
+  </Step>
+  <Step title="Create a session">
+    A new chat session is created via `POST /api/session`. The session ID is stored in `localStorage` so returning visitors resume their conversation.
+  </Step>
+  <Step title="Open a WebSocket">
+    A persistent WebSocket connection is established at `/ws/chat` for real-time messaging between the visitor and your agent.
+  </Step>
+  <Step title="Ready to chat">
+    The widget renders in the corner of the page. Visitors can type messages, use voice input, and interact with any registered tools.
+  </Step>
+</Steps>
+
+---
+
+## Customization
+
+All visual customization is managed from the **Dashboard**. The widget automatically picks up your settings at load time, including:
+
+- **Position** -- bottom-right, bottom-left, left sidebar, or right sidebar
+- **Colors** -- header, user bubbles, assistant bubbles, text
+- **Typography** -- any Google Font, custom font size
+- **Dimensions** -- panel width and height
+- **Branding** -- custom logo or emoji icon
+- **Welcome message** -- greeting text shown on first open
+- **Quick prompts** -- clickable suggestion chips
+- **Greeting prompts** -- animated suggestions that appear before the visitor opens the chat
+- **Voice** -- enable speech-to-text input and text-to-speech responses
+
+<Note>
+  On mobile screens narrower than 440px, the widget automatically expands to full screen for a better experience.
+</Note>
+
+---
+
+## TypeScript support
+
+The SDK ships with full type definitions. If you're using the script tag approach and need types for event handling, you can install the package as a dev dependency:
+
+```bash
+npm install --save-dev flunkie
+```
+
+Then import the types you need:
+
+```typescript
+import type { FlunkieInstance, ToolDefinition, McpToolResult } from "flunkie";
+```
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Register tools" icon="wrench" href="/widget/tools">
+    Give your agent the ability to take actions on your website.
+  </Card>
+  <Card title="Form tools" icon="rectangle-list" href="/widget/forms">
+    Turn any HTML form into an agent-callable tool with zero JavaScript.
+  </Card>
+</CardGroup>
