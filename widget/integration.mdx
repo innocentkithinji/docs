@@ -61,30 +61,40 @@ Then initialize in your application:
 import Flunkie from "flunkie";
 
 const flunkie = Flunkie.initialize({
-  key: "flk_your_api_key",   // required
-  chatbotId: 123,             // required
-  apiUrl: "https://api.your-domain.com", // optional
+  api_key: "flk_your_api_key",  // required
+  chatbotId: 123,                // required
 });
+```
+
+You can also use the SDK inline with the script tag (no npm required):
+
+```html index.html
+<script src="https://your-cdn.com/widget/chatbot-widget.js"></script>
+<script>
+  const flunkie = Flunkie.initialize({
+    api_key: "flk_your_api_key",
+    chatbotId: 123,
+  });
+</script>
 ```
 
 ### Options
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `key` | `string` | Yes | Your API key. Must start with `flk_` |
+| `api_key` | `string` | Yes | Your API key |
 | `chatbotId` | `number` | Yes | Your chatbot's numeric ID |
-| `apiUrl` | `string` | No | Custom API base URL. Defaults to `window.location.origin` |
 
-The `initialize` call returns a `FlunkieInstance` you can use to [register tools](/widget/tools), [scan forms](/widget/forms), listen for events, and clean up:
+The `initialize` call returns a handle you can use to send [page context](/widget/page-context), [register tools](/widget/tools), [scan forms](/widget/forms), and listen for events:
 
 ```typescript
+// Send page context so the agent knows where the visitor is
+flunkie.sendContextUpdate({ page: "pricing", plan: "Pro" }, true);
+
 // Listen for tool results from the agent
-const unsubscribe = flunkie.onToolResult((results) => {
+const unsubscribe = flunkie.onMcpResult((results) => {
   console.log("Agent used tools:", results);
 });
-
-// Clean up when done
-flunkie.destroy();
 ```
 
 <Warning>
@@ -152,11 +162,14 @@ import type { FlunkieInstance, ToolDefinition, McpToolResult } from "flunkie";
 
 ## Next steps
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
   <Card title="Register tools" icon="wrench" href="/widget/tools">
     Give your agent the ability to take actions on your website.
   </Card>
   <Card title="Form tools" icon="rectangle-list" href="/widget/forms">
     Turn any HTML form into an agent-callable tool with zero JavaScript.
+  </Card>
+  <Card title="Page context" icon="map-pin" href="/widget/page-context">
+    Send page context so the agent gives smarter, more relevant answers.
   </Card>
 </CardGroup>

@@ -1,0 +1,98 @@
+---
+title: "Quick start"
+description: "Add the Flunkie widget to a page with tools, forms, and page context in under 5 minutes"
+icon: "rocket"
+---
+
+## 1. Install and initialize
+
+Add the script tag and call `Flunkie.initialize()` with your API key and chatbot ID.
+
+```html
+<script src="https://your-cdn.com/widget/chatbot-widget.js"></script>
+<script>
+  const flunkie = Flunkie.initialize({
+    api_key: "flk_your_api_key",
+    chatbotId: 123,
+  });
+</script>
+```
+
+The widget injects itself into the page and opens a WebSocket to your agent. [Full integration docs &rarr;](/widget/integration)
+
+---
+
+## 2. Register a tool
+
+Give the agent an action it can take on your site with `registerTool()`.
+
+```javascript
+flunkie.registerTool({
+  name: "navigate_to_page",
+  description: "Navigate the visitor to a page on the site",
+  inputSchema: {
+    type: "object",
+    properties: {
+      url: { type: "string", description: "The URL to navigate to" },
+    },
+    required: ["url"],
+  },
+  execute({ url }) {
+    window.location.href = url;
+    return `Navigating to ${url}`;
+  },
+});
+```
+
+Now when a visitor asks "take me to the pricing page", the agent calls your function. [Full tools docs &rarr;](/widget/tools)
+
+---
+
+## 3. Add a form tool
+
+Add `flunkie-tool` and `flunkie-description` to any existing form — no JavaScript needed.
+
+```html
+<form flunkie-tool="contact_sales"
+      flunkie-description="Fill out the contact form for the visitor">
+  <input name="name" placeholder="Your name" required />
+  <input name="email" type="email" placeholder="Work email" required />
+  <button type="submit">Contact sales</button>
+</form>
+```
+
+The widget detects the form automatically and registers it as a tool the agent can fill out. [Full form docs &rarr;](/widget/forms)
+
+---
+
+## 4. Send page context
+
+Tell the agent where the visitor is so it can give relevant answers.
+
+```javascript
+flunkie.sendContextUpdate({
+  page_type: "pricing",
+  highlighted_plan: "Pro",
+}, true); // true = also include URL, title, and meta description
+```
+
+Now if a visitor asks "what's included?", the agent already knows they're looking at the Pro plan. [Full context docs &rarr;](/widget/page-context)
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Widget integration" icon="puzzle-piece" href="/widget/integration">
+    Script tag vs npm SDK, configuration, and customization.
+  </Card>
+  <Card title="Register tools" icon="wrench" href="/widget/tools">
+    Full tool API reference with more examples.
+  </Card>
+  <Card title="Form tools" icon="rectangle-list" href="/widget/forms">
+    Form attributes, auto-submit, and dynamic detection.
+  </Card>
+  <Card title="Page context" icon="map-pin" href="/widget/page-context">
+    Context API, auto page details, and SPA examples.
+  </Card>
+</CardGroup>

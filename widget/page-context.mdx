@@ -1,0 +1,178 @@
+---
+title: "Page context"
+description: "Send page context to the agent so it can give contextual, relevant answers"
+icon: "map-pin"
+---
+
+## Overview
+
+By default the agent only sees what the visitor types. With **page context**, you can tell the agent _where_ the visitor is and _what_ they're looking at — a pricing page, a product detail, an account settings screen — so it can give smarter, more relevant answers without the visitor having to explain.
+
+---
+
+## Quick start
+
+<CodeGroup>
+```html Script tag + inline SDK
+<script src="https://your-cdn.com/widget/chatbot-widget.js"></script>
+<script>
+  const flunkie = Flunkie.initialize({
+    api_key: "flk_your_api_key",
+    chatbotId: 123,
+  });
+
+  // Send custom context about the current page
+  flunkie.sendContextUpdate({ product: "Pro Plan", price: "$49/mo" });
+</script>
+```
+
+```typescript NPM SDK
+import Flunkie from "flunkie";
+
+const flunkie = Flunkie.initialize({
+  api_key: "flk_your_api_key",
+  chatbotId: 123,
+});
+
+flunkie.sendContextUpdate({ product: "Pro Plan", price: "$49/mo" });
+```
+</CodeGroup>
+
+---
+
+## API
+
+### `sendContextUpdate(data, includePageDetails?)`
+
+Sends a context payload to the agent over the active WebSocket connection. Call it whenever the visitor navigates or when relevant page data changes.
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `data` | `Record<string, any>` | Yes | Key-value pairs describing the current page context |
+| `includePageDetails` | `boolean` | No | When `true`, automatically appends the page URL, title, and meta description |
+
+```typescript
+// Custom data only
+flunkie.sendContextUpdate({
+  product: "Pro Plan",
+  price: "$49/mo",
+  category: "pricing",
+});
+
+// Custom data + automatic page details
+flunkie.sendContextUpdate(
+  { product: "Pro Plan", price: "$49/mo" },
+  true
+);
+
+// Page details only (no custom data)
+flunkie.sendContextUpdate({}, true);
+```
+
+### Auto page details
+
+When `includePageDetails` is `true`, the SDK automatically collects:
+
+| Field | Source |
+|-------|--------|
+| `url` | `window.location.href` |
+| `title` | `document.title` |
+| `meta_description` | `<meta name="description">` content |
+
+These are merged with your custom `data`. If you pass a key that overlaps (e.g. `title`), your value takes precedence.
+
+---
+
+## What the agent sees
+
+The page context is injected into the agent's prompt as additional context:
+
+```
+<additional context>
+page_context: {"url": "https://example.com/pricing", "title": "Pricing — Acme", "product": "Pro Plan", "price": "$49/mo"}
+</additional context>
+```
+
+The agent can use this to tailor its responses. For example, if a visitor asks "What's included?" while on the Pro Plan pricing page, the agent already knows which plan they're looking at.
+
+---
+
+## Updating context
+
+You can call `sendContextUpdate` multiple times. Each call **replaces** the previous context on the server — it does not merge. Send the full context you want the agent to have each time.
+
+```typescript
+// Visitor navigates to a new page
+flunkie.sendContextUpdate({
+  page: "checkout",
+  cart_total: "$98.00",
+  items: 2,
+}, true);
+```
+
+<Tip>
+  For single-page apps, call `sendContextUpdate` on route changes to keep the agent informed as the visitor navigates.
+</Tip>
+
+---
+
+## Examples
+
+### E-commerce product page
+
+```typescript
+flunkie.sendContextUpdate({
+  page_type: "product",
+  product_name: "Wireless Headphones",
+  product_price: "$79.99",
+  in_stock: true,
+  category: "Electronics",
+}, true);
+```
+
+### SaaS pricing page
+
+```typescript
+flunkie.sendContextUpdate({
+  page_type: "pricing",
+  highlighted_plan: "Pro",
+  billing_cycle: "annual",
+  currency: "USD",
+}, true);
+```
+
+### Account dashboard
+
+```typescript
+flunkie.sendContextUpdate({
+  page_type: "dashboard",
+  plan: "Enterprise",
+  usage_percent: 73,
+  days_until_renewal: 14,
+});
+```
+
+### SPA route change listener
+
+```typescript
+// React example
+useEffect(() => {
+  flunkie.sendContextUpdate({
+    route: location.pathname,
+    page_title: document.title,
+  }, true);
+}, [location.pathname]);
+```
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Register tools" icon="wrench" href="/widget/tools">
+    Give your agent the ability to take actions on your website.
+  </Card>
+  <Card title="Form tools" icon="rectangle-list" href="/widget/forms">
+    Turn any HTML form into an agent-callable tool with zero JavaScript.
+  </Card>
+</CardGroup>

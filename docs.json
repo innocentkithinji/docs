@@ -3,11 +3,11 @@
   "theme": "mint",
   "name": "Flunkie",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#1275CA",
+    "light": "#06A9FB",
+    "dark": "#1275CA"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/logo.svg",
   "navigation": {
     "tabs": [
       {
@@ -16,7 +16,8 @@
           {
             "group": "Getting started",
             "pages": [
-              "index"
+              "index",
+              "quickstart"
             ]
           },
           {
@@ -24,7 +25,8 @@
             "pages": [
               "widget/integration",
               "widget/tools",
-              "widget/forms"
+              "widget/forms",
+              "widget/page-context"
             ]
           }
         ]
