@@ -1,21 +1,36 @@
 ---
 title: "Quick start"
-description: "Add the Flunkie widget to a page with tools, forms, and page context in under 5 minutes"
+description: "Add the Zephlo widget to a page with tools, forms, and page context in under 5 minutes"
 icon: "rocket"
 ---
 
 ## 1. Install and initialize
 
-Add the script tag and call `Flunkie.initialize()` with your API key and chatbot ID.
+Add the script tag and call `Zephlo.initialize()` with your API key and chatbot ID.
 
 ```html
-<script src="https://your-cdn.com/widget/chatbot-widget.js"></script>
+<script src="https://unpkg.com/zephlo/dist/zephlo.js"></script>
 <script>
-  const flunkie = Flunkie.initialize({
-    api_key: "flk_your_api_key",
-    chatbotId: 123,
+  const zephlo = Zephlo.initialize({
+    key: "flk_your_api_key",
+    chatbotId: "YOUR_CHATBOT_ID",
   });
 </script>
+```
+
+Or install from npm:
+
+```bash
+npm install zephlo
+```
+
+```javascript
+import Zephlo from "zephlo";
+
+const zephlo = Zephlo.initialize({
+  key: "flk_your_api_key",
+  chatbotId: "YOUR_CHATBOT_ID",
+});
 ```
 
 The widget injects itself into the page and opens a WebSocket to your agent. [Full integration docs &rarr;](/widget/integration)
@@ -27,7 +42,7 @@ The widget injects itself into the page and opens a WebSocket to your agent. [Fu
 Give the agent an action it can take on your site with `registerTool()`.
 
 ```javascript
-flunkie.registerTool({
+zephlo.registerTool({
   name: "navigate_to_page",
   description: "Navigate the visitor to a page on the site",
   inputSchema: {
@@ -50,11 +65,11 @@ Now when a visitor asks "take me to the pricing page", the agent calls your func
 
 ## 3. Add a form tool
 
-Add `flunkie-tool` and `flunkie-description` to any existing form — no JavaScript needed.
+Add `zephlo-tool-name` and `zephlo-tool-description` to any existing form — no JavaScript needed.
 
 ```html
-<form flunkie-tool="contact_sales"
-      flunkie-description="Fill out the contact form for the visitor">
+<form zephlo-tool-name="contact_sales"
+      zephlo-tool-description="Fill out the contact form for the visitor">
   <input name="name" placeholder="Your name" required />
   <input name="email" type="email" placeholder="Work email" required />
   <button type="submit">Contact sales</button>
@@ -70,7 +85,7 @@ The widget detects the form automatically and registers it as a tool the agent c
 Tell the agent where the visitor is so it can give relevant answers.
 
 ```javascript
-flunkie.sendContextUpdate({
+zephlo.sendContextUpdate({
   page_type: "pricing",
   highlighted_plan: "Pro",
 }, true); // true = also include URL, title, and meta description

@@ -1,12 +1,12 @@
 ---
 title: "Widget integration"
-description: "Add the Flunkie chatbot widget to any website in minutes"
+description: "Add the Zephlo chatbot widget to any website in minutes"
 icon: "puzzle-piece"
 ---
 
 ## Overview
 
-The Flunkie widget is a drop-in chatbot that connects your website visitors to your AI agent. It runs as a [Web Component](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) with full Shadow DOM isolation, so it won't interfere with your existing styles or scripts.
+The Zephlo widget is a drop-in chatbot that connects your website visitors to your AI agent. It runs as a [Web Component](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) with full Shadow DOM isolation, so it won't interfere with your existing styles or scripts.
 
 There are two ways to add the widget to your site:
 
@@ -27,18 +27,18 @@ The fastest way to get started. Add a single `<script>` tag before your closing 
 
 ```html index.html
 <script
-  src="https://your-cdn.com/widget/chatbot-widget.js"
+  src="https://unpkg.com/zephlo/dist/zephlo.js"
   data-chatbot-id="YOUR_CHATBOT_ID"
 ></script>
 ```
 
-That's it. The widget auto-injects itself into the page, fetches its configuration from the Flunkie API, and opens a chat session for each visitor.
+That's it. The widget auto-injects itself into the page, fetches its configuration from the Zephlo API, and opens a chat session for each visitor.
 
 ### Attributes
 
 | Attribute | Required | Description |
 |-----------|----------|-------------|
-| `data-chatbot-id` | Yes | Your chatbot's numeric ID from the dashboard |
+| `data-chatbot-id` | Yes | Your chatbot's UUID from the dashboard |
 | `data-api-url` | No | Custom API base URL. Defaults to the script's origin |
 
 <Tip>
@@ -49,31 +49,31 @@ That's it. The widget auto-injects itself into the page, fetches its configurati
 
 ## SDK (npm)
 
-Install the package for full programmatic control:
+Install the package from [npm](https://www.npmjs.com/package/zephlo) for full programmatic control:
 
 ```bash
-npm install flunkie
+npm install zephlo
 ```
 
 Then initialize in your application:
 
 ```typescript app.ts
-import Flunkie from "flunkie";
+import Zephlo from "zephlo";
 
-const flunkie = Flunkie.initialize({
-  api_key: "flk_your_api_key",  // required
-  chatbotId: 123,                // required
+const zephlo = Zephlo.initialize({
+  key: "flk_your_api_key",          // required
+  chatbotId: "YOUR_CHATBOT_ID",     // required
 });
 ```
 
 You can also use the SDK inline with the script tag (no npm required):
 
 ```html index.html
-<script src="https://your-cdn.com/widget/chatbot-widget.js"></script>
+<script src="https://unpkg.com/zephlo/dist/zephlo.js"></script>
 <script>
-  const flunkie = Flunkie.initialize({
-    api_key: "flk_your_api_key",
-    chatbotId: 123,
+  const zephlo = Zephlo.initialize({
+    key: "flk_your_api_key",
+    chatbotId: "YOUR_CHATBOT_ID",
   });
 </script>
 ```
@@ -82,23 +82,24 @@ You can also use the SDK inline with the script tag (no npm required):
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
-| `api_key` | `string` | Yes | Your API key |
-| `chatbotId` | `number` | Yes | Your chatbot's numeric ID |
+| `key` | `string` | Yes | Your API key (must start with `flk_`) |
+| `chatbotId` | `string` | Yes | Your chatbot's UUID |
+| `apiUrl` | `string` | No | Custom API base URL |
 
 The `initialize` call returns a handle you can use to send [page context](/widget/page-context), [register tools](/widget/tools), [scan forms](/widget/forms), and listen for events:
 
 ```typescript
 // Send page context so the agent knows where the visitor is
-flunkie.sendContextUpdate({ page: "pricing", plan: "Pro" }, true);
+zephlo.sendContextUpdate({ page: "pricing", plan: "Pro" }, true);
 
 // Listen for tool results from the agent
-const unsubscribe = flunkie.onMcpResult((results) => {
+const unsubscribe = zephlo.onToolResult((results) => {
   console.log("Agent used tools:", results);
 });
 ```
 
 <Warning>
-  Calling `Flunkie.initialize()` more than once on the same page is a no-op. The widget prevents duplicate instances automatically.
+  Calling `Zephlo.initialize()` more than once on the same page is a no-op. The widget prevents duplicate instances automatically.
 </Warning>
 
 ---
@@ -149,13 +150,13 @@ All visual customization is managed from the **Dashboard**. The widget automatic
 The SDK ships with full type definitions. If you're using the script tag approach and need types for event handling, you can install the package as a dev dependency:
 
 ```bash
-npm install --save-dev flunkie
+npm install --save-dev zephlo
 ```
 
 Then import the types you need:
 
 ```typescript
-import type { FlunkieInstance, ToolDefinition, McpToolResult } from "flunkie";
+import type { ZephloInstance, ToolDefinition, McpToolResult } from "zephlo";
 ```
 
 ---

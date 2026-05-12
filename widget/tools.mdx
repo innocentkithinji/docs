@@ -14,17 +14,17 @@ When a visitor asks something that requires an action, the agent automatically p
 
 ## Register a tool
 
-Use the `registerTool` method on your Flunkie instance:
+Use the `registerTool` method on your Zephlo instance:
 
 ```typescript
-import Flunkie from "flunkie";
+import Zephlo from "zephlo";
 
-const flunkie = Flunkie.initialize({
+const zephlo = Zephlo.initialize({
   key: "flk_your_api_key",
-  chatbotId: 123,
+  chatbotId: "YOUR_CHATBOT_ID",
 });
 
-flunkie.registerTool({
+zephlo.registerTool({
   name: "add_to_cart",
   description: "Add a product to the shopping cart",
   inputSchema: {
@@ -155,7 +155,7 @@ execute: async (params) => {
 ### Navigate to a page
 
 ```typescript
-flunkie.registerTool({
+zephlo.registerTool({
   name: "navigate",
   description: "Navigate the visitor to a specific page on the website",
   inputSchema: {
@@ -175,7 +175,7 @@ flunkie.registerTool({
 ### Search products
 
 ```typescript
-flunkie.registerTool({
+zephlo.registerTool({
   name: "search_products",
   description: "Search the product catalog and return matching results",
   inputSchema: {
@@ -197,7 +197,7 @@ flunkie.registerTool({
 ### Toggle dark mode
 
 ```typescript
-flunkie.registerTool({
+zephlo.registerTool({
   name: "toggle_dark_mode",
   description: "Switch between light and dark mode on the website",
   inputSchema: {
@@ -221,7 +221,7 @@ flunkie.registerTool({
 ### Get page context
 
 ```typescript
-flunkie.registerTool({
+zephlo.registerTool({
   name: "get_page_info",
   description: "Get information about the page the visitor is currently viewing",
   inputSchema: {
@@ -245,7 +245,7 @@ flunkie.registerTool({
 You can listen for tool results to update your UI or trigger side effects:
 
 ```typescript
-const unsubscribe = flunkie.onToolResult((results) => {
+const unsubscribe = zephlo.onToolResult((results) => {
   for (const result of results) {
     console.log(`Tool: ${result.tool_name}`);
     console.log(`Result: ${result.content}`);
@@ -264,7 +264,7 @@ unsubscribe();
 Retrieve all registered tools and their schemas:
 
 ```typescript
-const tools = flunkie.webMcpTools();
+const tools = zephlo.webMcpTools();
 
 for (const tool of tools) {
   console.log(tool.name, tool.description);

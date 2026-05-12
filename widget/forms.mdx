@@ -6,7 +6,7 @@ icon: "rectangle-list"
 
 ## Overview
 
-Form tools let you turn any HTML form on your page into a tool the AI agent can use -- without writing a single line of JavaScript. Just add a few `flunkie-*` attributes to your existing form markup and the agent can fill in fields, select options, and optionally submit the form on behalf of the visitor.
+Form tools let you turn any HTML form on your page into a tool the AI agent can use -- without writing a single line of JavaScript. Just add a few `zephlo-*` attributes to your existing form markup and the agent can fill in fields, select options, and optionally submit the form on behalf of the visitor.
 
 This is perfect for lead capture forms, contact forms, search filters, booking forms, and any other form-based interaction.
 
@@ -14,21 +14,21 @@ This is perfect for lead capture forms, contact forms, search filters, booking f
 
 ## Quick start
 
-Add `flunkie-tool-name` to any `<form>` element:
+Add `zephlo-tool-name` to any `<form>` element:
 
 ```html
 <form
-  flunkie-tool-name="submit_contact"
-  flunkie-tool-description="Submit a contact inquiry from the visitor"
+  zephlo-tool-name="submit_contact"
+  zephlo-tool-description="Submit a contact inquiry from the visitor"
 >
   <input name="name" type="text" required
-    flunkie-param-description="The visitor's full name" />
+    zephlo-param-description="The visitor's full name" />
 
   <input name="email" type="email" required
-    flunkie-param-description="The visitor's email address" />
+    zephlo-param-description="The visitor's email address" />
 
   <textarea name="message"
-    flunkie-param-description="The message or question"></textarea>
+    zephlo-param-description="The message or question"></textarea>
 
   <button type="submit">Send</button>
 </form>
@@ -44,18 +44,18 @@ The widget automatically detects this form and registers it as a tool. When the 
 
 | Attribute | Required | Description |
 |-----------|----------|-------------|
-| `flunkie-tool-name` | Yes | Unique name for the tool (use `snake_case`) |
-| `flunkie-tool-description` | No | Plain-English description the agent reads to decide when to use this form |
-| `flunkie-auto-submit` | No | If present, the agent submits the form automatically after filling it |
+| `zephlo-tool-name` | Yes | Unique name for the tool (use `snake_case`) |
+| `zephlo-tool-description` | No | Plain-English description the agent reads to decide when to use this form |
+| `zephlo-auto-submit` | No | If present, the agent submits the form automatically after filling it |
 
 ### On `<input>`, `<select>`, and `<textarea>` elements
 
 | Attribute | Required | Description |
 |-----------|----------|-------------|
-| `flunkie-param-description` | No | Description of what this field is for. Helps the agent fill it correctly |
+| `zephlo-param-description` | No | Description of what this field is for. Helps the agent fill it correctly |
 
 <Tip>
-  Always add `flunkie-param-description` to your fields. Without it, the agent only sees the field's `name` attribute, which may not be descriptive enough.
+  Always add `zephlo-param-description` to your fields. Without it, the agent only sees the field's `name` attribute, which may not be descriptive enough.
 </Tip>
 
 ---
@@ -64,19 +64,19 @@ The widget automatically detects this form and registers it as a tool. When the 
 
 By default, the agent fills in the form fields but **does not submit**. The visitor sees the filled form and can review or modify the values before clicking submit themselves.
 
-To let the agent submit automatically, add `flunkie-auto-submit`:
+To let the agent submit automatically, add `zephlo-auto-submit`:
 
 ```html
 <!-- Fill only (default) -- visitor reviews and submits -->
-<form flunkie-tool-name="search_flights"
-      flunkie-tool-description="Search for available flights">
+<form zephlo-tool-name="search_flights"
+      zephlo-tool-description="Search for available flights">
   ...
 </form>
 
 <!-- Auto-submit -- agent fills and submits -->
-<form flunkie-tool-name="subscribe_newsletter"
-      flunkie-tool-description="Subscribe the visitor to the newsletter"
-      flunkie-auto-submit>
+<form zephlo-tool-name="subscribe_newsletter"
+      zephlo-tool-description="Subscribe the visitor to the newsletter"
+      zephlo-auto-submit>
   ...
 </form>
 ```
@@ -88,7 +88,7 @@ To let the agent submit automatically, add `flunkie-auto-submit`:
 When auto-submit is enabled, the form dispatches a standard `submit` event with an extra `agentInvoked` flag. Use `respondWith` to return a result to the agent:
 
 ```javascript
-const form = document.querySelector("form[flunkie-tool-name='subscribe_newsletter']");
+const form = document.querySelector("form[zephlo-tool-name='subscribe_newsletter']");
 
 form.addEventListener("submit", (e) => {
   if (e.agentInvoked) {
@@ -150,31 +150,31 @@ This means your existing validation logic doubles as instructions for the agent.
 
 ```html
 <form
-  flunkie-tool-name="capture_lead"
-  flunkie-tool-description="Capture the visitor's contact information for a sales follow-up"
-  flunkie-auto-submit
+  zephlo-tool-name="capture_lead"
+  zephlo-tool-description="Capture the visitor's contact information for a sales follow-up"
+  zephlo-auto-submit
 >
   <label>
     Name
     <input name="name" type="text" required
-      flunkie-param-description="Full name of the visitor" />
+      zephlo-param-description="Full name of the visitor" />
   </label>
 
   <label>
     Email
     <input name="email" type="email" required
-      flunkie-param-description="Work email address" />
+      zephlo-param-description="Work email address" />
   </label>
 
   <label>
     Company
     <input name="company" type="text"
-      flunkie-param-description="Company or organization name" />
+      zephlo-param-description="Company or organization name" />
   </label>
 
   <label>
     Team size
-    <select name="team_size" flunkie-param-description="Number of people on their team">
+    <select name="team_size" zephlo-param-description="Number of people on their team">
       <option value="1-10">1-10</option>
       <option value="11-50">11-50</option>
       <option value="51-200">51-200</option>
@@ -190,24 +190,24 @@ This means your existing validation logic doubles as instructions for the agent.
 
 ```html
 <form
-  flunkie-tool-name="book_appointment"
-  flunkie-tool-description="Book an appointment for the visitor"
+  zephlo-tool-name="book_appointment"
+  zephlo-tool-description="Book an appointment for the visitor"
 >
   <input name="date" type="date" required
-    flunkie-param-description="Preferred appointment date" />
+    zephlo-param-description="Preferred appointment date" />
 
   <input name="time" type="time" required
-    flunkie-param-description="Preferred time of day" />
+    zephlo-param-description="Preferred time of day" />
 
   <select name="service" required
-    flunkie-param-description="Type of service requested">
+    zephlo-param-description="Type of service requested">
     <option value="consultation">Consultation</option>
     <option value="demo">Product demo</option>
     <option value="support">Technical support</option>
   </select>
 
   <textarea name="notes"
-    flunkie-param-description="Any additional notes or requests"></textarea>
+    zephlo-param-description="Any additional notes or requests"></textarea>
 
   <button type="submit">Book</button>
 </form>
@@ -217,15 +217,15 @@ This means your existing validation logic doubles as instructions for the agent.
 
 ```html
 <form
-  flunkie-tool-name="filter_products"
-  flunkie-tool-description="Filter the product list based on visitor preferences"
-  flunkie-auto-submit
+  zephlo-tool-name="filter_products"
+  zephlo-tool-description="Filter the product list based on visitor preferences"
+  zephlo-auto-submit
 >
   <input name="query" type="search"
-    flunkie-param-description="Search keywords" />
+    zephlo-param-description="Search keywords" />
 
   <select name="category"
-    flunkie-param-description="Product category">
+    zephlo-param-description="Product category">
     <option value="">All categories</option>
     <option value="shoes">Shoes</option>
     <option value="shirts">Shirts</option>
@@ -233,14 +233,14 @@ This means your existing validation logic doubles as instructions for the agent.
   </select>
 
   <input name="min_price" type="number" min="0"
-    flunkie-param-description="Minimum price in USD" />
+    zephlo-param-description="Minimum price in USD" />
 
   <input name="max_price" type="number" min="0"
-    flunkie-param-description="Maximum price in USD" />
+    zephlo-param-description="Maximum price in USD" />
 
   <label>
     <input name="in_stock" type="checkbox"
-      flunkie-param-description="Only show items currently in stock" />
+      zephlo-param-description="Only show items currently in stock" />
     In stock only
   </label>
 
@@ -252,12 +252,12 @@ This means your existing validation logic doubles as instructions for the agent.
 
 ## Dynamic forms
 
-The widget uses a `MutationObserver` to automatically detect forms added to the page after initial load. If you dynamically insert a form with `flunkie-tool-name`, it will be picked up automatically.
+The widget uses a `MutationObserver` to automatically detect forms added to the page after initial load. If you dynamically insert a form with `zephlo-tool-name`, it will be picked up automatically.
 
 You can also trigger a manual scan:
 
 ```typescript
-flunkie.scanForms();
+zephlo.scanForms();
 ```
 
 ### Shadow DOM support
@@ -265,7 +265,7 @@ flunkie.scanForms();
 If your forms live inside a Shadow DOM (e.g., in a Web Component), you can scan them directly:
 
 ```typescript
-import { FormScanner } from "flunkie";
+import { FormScanner } from "zephlo";
 
 const shadow = myComponent.shadowRoot;
 const scanner = new FormScanner(shadow);
