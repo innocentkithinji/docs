@@ -6,14 +6,15 @@ icon: "rocket"
 
 ## 1. Install and initialize
 
-Add the script tag and call `Zephlo.initialize()` with your API key and chatbot ID.
+Add the script tag, call `Zephlo.initialize()` with your API key and agent ID, and drop in a `<zephlo-fab>` element where the floating button should appear.
 
 ```html
 <script src="https://unpkg.com/zephlo/dist/zephlo.js"></script>
+<zephlo-fab></zephlo-fab>
 <script>
   const zephlo = Zephlo.initialize({
     key: "flk_your_api_key",
-    chatbotId: "YOUR_CHATBOT_ID",
+    chatbotId: "YOUR_AGENT_ID",
   });
 </script>
 ```
@@ -29,11 +30,11 @@ import Zephlo from "zephlo";
 
 const zephlo = Zephlo.initialize({
   key: "flk_your_api_key",
-  chatbotId: "YOUR_CHATBOT_ID",
+  chatbotId: "YOUR_AGENT_ID",
 });
 ```
 
-The widget injects itself into the page and opens a WebSocket to your agent. [Full integration docs &rarr;](/widget/integration)
+The widget renders, fetches its settings, and opens a WebSocket to your agent. Prefer an embedded chat instead of a floating button? Use `<zephlo-chat>`. [Full integration docs &rarr;](/widget/integration)
 
 ---
 
@@ -109,5 +110,11 @@ Now if a visitor asks "what's included?", the agent already knows they're lookin
   </Card>
   <Card title="Page context" icon="map-pin" href="/widget/page-context">
     Context API, auto page details, and SPA examples.
+  </Card>
+  <Card title="Proactive triggers" icon="bell" href="/widget/triggers">
+    Have the agent reach out to visitors first, with cooldowns.
+  </Card>
+  <Card title="Theming" icon="palette" href="/widget/theming">
+    Control colors and light/dark mode from the SDK.
   </Card>
 </CardGroup>

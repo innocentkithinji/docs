@@ -1,0 +1,135 @@
+---
+title: "Theming"
+description: "Match the widget's colors and light/dark mode to your brand"
+icon: "palette"
+---
+
+## Overview
+
+Most appearance settings — position, fonts, logo, dimensions, welcome message — are managed from the **Dashboard** and applied automatically when the widget loads. See [Customization](/widget/integration#customization) for the full list.
+
+When you use the npm SDK, you also get **programmatic control** over the widget's colors and light/dark mode. This is useful when you want the widget to follow your site's own theme toggle, or to brand it at runtime without touching the Dashboard.
+
+<Note>
+  Theme controls are part of the SDK handle returned by `Zephlo.initialize()`. They are not available through the plain script-tag (`data-chatbot-id`) integration.
+</Note>
+
+---
+
+## Set colors and mode at init
+
+Pass a `theme` option to `Zephlo.initialize()`:
+
+```typescript
+const zephlo = Zephlo.initialize({
+  key: "flk_your_api_key",
+  chatbotId: "YOUR_AGENT_ID",
+  theme: {
+    mode: "auto",                 // "auto" | "light" | "dark"
+    light: {
+      headerColor: "#0071e3",
+      userBubbleColor: "#0071e3",
+    },
+    dark: {
+      headerColor: "#0a84ff",
+      bgColor: "#1c1c1e",
+    },
+  },
+});
+```
+
+### Theme option
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `mode` | `"auto" \| "light" \| "dark"` | Which color set is active. `auto` follows the host page (see below) |
+| `light` | `ThemeColors` | Color overrides for light mode |
+| `dark` | `ThemeColors` | Color overrides for dark mode |
+
+### Colors
+
+Each mode accepts these optional colors. Anything you leave out falls back to a polished default.
+
+| Color | Applies to |
+|-------|-----------|
+| `headerColor` | Header bar and primary accent |
+| `userBubbleColor` | The visitor's message bubbles |
+| `assistantBubbleColor` | The agent's message bubbles |
+| `textColor` | Primary text |
+| `bgColor` | Panel background |
+
+---
+
+## Auto mode
+
+With `mode: "auto"` (the default), the widget detects the host page's theme and matches it. It checks, in order:
+
+1. A `data-theme="dark"` / `data-theme="light"` attribute on `<html>` or `<body>`
+2. A `dark` / `light` class on `<html>` (Tailwind, daisyUI, etc.)
+3. The CSS `color-scheme` property
+4. The visitor's OS preference (`prefers-color-scheme`)
+
+The widget also **reacts to changes** — if your site toggles its theme class at runtime, the widget switches with it. No extra code required.
+
+---
+
+## Change the theme at runtime
+
+The handle exposes live properties. Assigning to them re-styles every mounted view immediately.
+
+```typescript
+// Switch mode
+zephlo.theme = "dark";
+
+// Update a single color on the active mode
+zephlo.headerColor = "#ff3b30";
+zephlo.userBubbleColor = "#ff3b30";
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `theme` | `"auto" \| "light" \| "dark"` | Get/set the active mode |
+| `headerColor` | `string` | Header / accent color |
+| `userBubbleColor` | `string` | Visitor bubble color |
+| `assistantBubbleColor` | `string` | Agent bubble color |
+| `textColor` | `string` | Primary text color |
+| `bgColor` | `string` | Panel background color |
+
+### Update a mode without switching to it
+
+Use `setColors(mode, colors)` to change colors for light or dark mode without making it active:
+
+```typescript
+zephlo.setColors("dark", {
+  headerColor: "#0a84ff",
+  bgColor: "#000000",
+});
+```
+
+---
+
+## Follow your site's theme toggle
+
+A common pattern: keep the widget in sync with your own light/dark switch.
+
+```typescript
+function applyTheme(mode: "light" | "dark") {
+  document.documentElement.dataset.theme = mode;
+  zephlo.theme = mode; // keep the widget in step
+}
+```
+
+If you'd rather let the widget track your page automatically, leave it in `auto` mode and just toggle your page's `data-theme` or `.dark` class — the widget follows along.
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Widget integration" icon="puzzle-piece" href="/widget/integration">
+    Embedding options and Dashboard customization.
+  </Card>
+  <Card title="Proactive triggers" icon="bell" href="/widget/triggers">
+    Have the agent reach out to visitors first.
+  </Card>
+</CardGroup>

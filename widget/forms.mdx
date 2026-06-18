@@ -107,8 +107,23 @@ form.addEventListener("submit", (e) => {
 ```
 
 <Note>
-  If you don't call `e.respondWith()`, the agent receives a default "Form submitted" confirmation.
+  If you don't call `e.respondWith()`, the agent receives a default "Form submitted successfully" confirmation.
 </Note>
+
+### Returning a result without JavaScript
+
+If your form posts on its own and you just want to hand a specific message back to the agent, set a `zephlo-result` attribute on the form. The widget reads it after submission and clears it:
+
+```html
+<form
+  zephlo-tool-name="subscribe_newsletter"
+  zephlo-tool-description="Subscribe the visitor to the newsletter"
+  zephlo-auto-submit
+  zephlo-result="The visitor has been subscribed to the newsletter."
+>
+  ...
+</form>
+```
 
 ---
 
@@ -140,7 +155,11 @@ This means your existing validation logic doubles as instructions for the agent.
 | `radio` | `string` | With `enum` from group values |
 | `<select>` | `string` | With `enum` from options |
 | `<textarea>` | `string` | Long text |
-| `file`, `submit`, `button`, `reset` | -- | Skipped automatically |
+| `file`, `submit`, `button`, `reset`, `image` | -- | Skipped automatically |
+
+<Note>
+  Only fields with a `name` attribute become tool parameters. A `file` input is always skipped — the agent can't set files programmatically — so keep file uploads for the visitor to fill in themselves.
+</Note>
 
 ---
 
@@ -252,29 +271,17 @@ This means your existing validation logic doubles as instructions for the agent.
 
 ## Dynamic forms
 
-The widget uses a `MutationObserver` to automatically detect forms added to the page after initial load. If you dynamically insert a form with `zephlo-tool-name`, it will be picked up automatically.
+The widget uses a `MutationObserver` to automatically detect forms added to the page after initial load. If you dynamically insert a form with `zephlo-tool-name`, it's picked up automatically.
 
-You can also trigger a manual scan:
+If you ever need to force an immediate re-scan — for example, right after rendering a form in a framework that updates the DOM asynchronously — call:
 
 ```typescript
 zephlo.scanForms();
 ```
 
-### Shadow DOM support
-
-If your forms live inside a Shadow DOM (e.g., in a Web Component), you can scan them directly:
-
-```typescript
-import { FormScanner } from "zephlo";
-
-const shadow = myComponent.shadowRoot;
-const scanner = new FormScanner(shadow);
-scanner.scan();     // One-time scan
-scanner.observe();  // Watch for new forms
-
-// Clean up
-scanner.disconnect();
-```
+<Note>
+  Auto-detection watches the main document. Forms rendered inside another component's Shadow DOM are isolated and won't be seen, so keep your `zephlo-tool-name` form markup in the regular (light) DOM.
+</Note>
 
 ---
 

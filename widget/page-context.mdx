@@ -18,7 +18,7 @@ By default the agent only sees what the visitor types. With **page context**, yo
 <script>
   const zephlo = Zephlo.initialize({
     key: "flk_your_api_key",
-    chatbotId: "YOUR_CHATBOT_ID",
+    chatbotId: "YOUR_AGENT_ID",
   });
 
   // Send custom context about the current page
@@ -31,7 +31,7 @@ import Zephlo from "zephlo";
 
 const zephlo = Zephlo.initialize({
   key: "flk_your_api_key",
-  chatbotId: "YOUR_CHATBOT_ID",
+  chatbotId: "YOUR_AGENT_ID",
 });
 
 zephlo.sendContextUpdate({ product: "Pro Plan", price: "$49/mo" });
@@ -45,6 +45,10 @@ zephlo.sendContextUpdate({ product: "Pro Plan", price: "$49/mo" });
 ### `sendContextUpdate(data, includePageDetails?)`
 
 Sends a context payload to the agent over the active WebSocket connection. Call it whenever the visitor navigates or when relevant page data changes.
+
+<Note>
+  Context is delivered on the live chat connection. A brand-new visitor has no connection until they send their first message, so the latest context you set is what the agent sees once the conversation starts. To attach context to a [proactive trigger](/widget/triggers) before any chat begins, use the trigger's `pageContext` option.
+</Note>
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|

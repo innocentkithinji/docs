@@ -1,12 +1,12 @@
 ---
 title: "Widget integration"
-description: "Add the Zephlo chatbot widget to any website in minutes"
+description: "Add the Zephlo agent widget to any website in minutes"
 icon: "puzzle-piece"
 ---
 
 ## Overview
 
-The Zephlo widget is a drop-in chatbot that connects your website visitors to your AI agent. It runs as a [Web Component](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) with full Shadow DOM isolation, so it won't interfere with your existing styles or scripts.
+The Zephlo widget is a drop-in chat experience that connects your website visitors to your AI agent. It runs as a [Web Component](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) with full Shadow DOM isolation, so it won't interfere with your existing styles or scripts.
 
 There are two ways to add the widget to your site:
 
@@ -23,27 +23,30 @@ There are two ways to add the widget to your site:
 
 ## Script tag
 
-The fastest way to get started. Add a single `<script>` tag before your closing `</body>` tag:
+The fastest way to get started. Add a single `<script>` tag with your agent's ID before your closing `</body>` tag:
 
 ```html index.html
 <script
   src="https://unpkg.com/zephlo/dist/zephlo.js"
-  data-chatbot-id="YOUR_CHATBOT_ID"
+  data-chatbot-id="YOUR_AGENT_ID"
 ></script>
 ```
 
-That's it. The widget auto-injects itself into the page, fetches its configuration from the Zephlo API, and opens a chat session for each visitor.
+That's it. When the script tag carries a `data-chatbot-id`, the widget **auto-injects a floating chat button** into the page, fetches its configuration from the Zephlo API, and opens a chat session for each visitor.
 
 ### Attributes
 
 | Attribute | Required | Description |
 |-----------|----------|-------------|
-| `data-chatbot-id` | Yes | Your chatbot's UUID from the dashboard |
-| `data-api-url` | No | Custom API base URL. Defaults to the script's origin |
+| `data-chatbot-id` | Yes | Your agent's UUID from the dashboard |
 
 <Tip>
-  You'll find your chatbot ID in the **Dashboard** under **Settings > Widget**.
+  You'll find your agent's ID and API key in the **Dashboard** under your agent's **Settings**. Always use the agent's UUID, not a numeric id.
 </Tip>
+
+<Note>
+  The widget talks to `https://app.zephlo.ai` by default. To point it at a self-hosted or staging API, set a global before the script loads: `<script>window.FLAPI = "https://your-api.example.com";</script>`. With the SDK, pass the [`apiUrl` option](#options) instead.
+</Note>
 
 ---
 
@@ -55,25 +58,35 @@ Install the package from [npm](https://www.npmjs.com/package/zephlo) for full pr
 npm install zephlo
 ```
 
-Then initialize in your application:
+Then initialize in your application and place a widget element where you want it to render:
 
 ```typescript app.ts
 import Zephlo from "zephlo";
 
 const zephlo = Zephlo.initialize({
-  key: "flk_your_api_key",          // required
-  chatbotId: "YOUR_CHATBOT_ID",     // required
+  key: "flk_your_api_key",        // required
+  chatbotId: "YOUR_AGENT_ID",     // required
 });
 ```
+
+```html index.html
+<!-- A floating chat button in the corner of the page -->
+<zephlo-fab></zephlo-fab>
+```
+
+<Warning>
+  With the SDK, `Zephlo.initialize()` only **configures** the widget — it does not render anything on its own. You must add a `<zephlo-fab>` or `<zephlo-chat>` element to your HTML. (The plain script-tag integration above injects the `<zephlo-fab>` for you.) See [Choosing a layout](#choosing-a-layout).
+</Warning>
 
 You can also use the SDK inline with the script tag (no npm required):
 
 ```html index.html
 <script src="https://unpkg.com/zephlo/dist/zephlo.js"></script>
+<zephlo-fab></zephlo-fab>
 <script>
   const zephlo = Zephlo.initialize({
     key: "flk_your_api_key",
-    chatbotId: "YOUR_CHATBOT_ID",
+    chatbotId: "YOUR_AGENT_ID",
   });
 </script>
 ```
@@ -83,10 +96,11 @@ You can also use the SDK inline with the script tag (no npm required):
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
 | `key` | `string` | Yes | Your API key (must start with `flk_`) |
-| `chatbotId` | `string` | Yes | Your chatbot's UUID |
-| `apiUrl` | `string` | No | Custom API base URL |
+| `chatbotId` | `string` | Yes | Your agent's UUID |
+| `apiUrl` | `string` | No | Custom API base URL. Defaults to `https://app.zephlo.ai` |
+| `theme` | `object` | No | Colors and light/dark mode. See [Theming](/widget/theming) |
 
-The `initialize` call returns a handle you can use to send [page context](/widget/page-context), [register tools](/widget/tools), [scan forms](/widget/forms), and listen for events:
+The `initialize` call returns a handle you can use to send [page context](/widget/page-context), [register tools](/widget/tools), [scan forms](/widget/forms), fire [proactive triggers](/widget/triggers), control [theming](/widget/theming), and listen for events:
 
 ```typescript
 // Send page context so the agent knows where the visitor is
@@ -104,22 +118,59 @@ const unsubscribe = zephlo.onToolResult((results) => {
 
 ---
 
+## Choosing a layout
+
+Place one of two custom elements to control how the widget appears. Both connect to the same agent and share the same conversation, so you can even use both on one page.
+
+<CardGroup cols={2}>
+  <Card title="<zephlo-fab>" icon="comment">
+    A **floating action button** pinned to the corner of the page. Clicking it opens the chat panel. This is the classic chat-bubble experience.
+  </Card>
+  <Card title="<zephlo-chat>" icon="window-maximize">
+    An **inline chat** that fills whatever container you place it in — great for a contact page, a help center, or a docs sidebar.
+  </Card>
+</CardGroup>
+
+### Floating button
+
+```html
+<zephlo-fab></zephlo-fab>
+```
+
+Position, colors, and other appearance settings come from the Dashboard (see [Customization](#customization)).
+
+### Inline chat
+
+Drop `<zephlo-chat>` anywhere in your layout. It expands to fill its parent. Use the optional `width` and `height` attributes to size it directly — plain numbers are treated as pixels, or pass any CSS value:
+
+```html
+<div class="support-panel">
+  <zephlo-chat width="100%" height="540"></zephlo-chat>
+</div>
+```
+
+<Note>
+  These elements only render once `Zephlo.initialize()` has been called with your key and agent ID. The plain script-tag integration sets this up automatically and injects a `<zephlo-fab>` for you.
+</Note>
+
+---
+
 ## How it works
 
 Once loaded, the widget follows this sequence:
 
 <Steps>
   <Step title="Fetch configuration">
-    The widget calls `GET /api/public/chatbots/{id}/config` to retrieve your chatbot's appearance settings, welcome message, quick prompts, and feature flags.
+    The widget calls `GET /api/public/agents/{id}/config` to retrieve your agent's appearance settings, welcome message, quick prompts, and feature flags.
   </Step>
   <Step title="Create a session">
-    A new chat session is created via `POST /api/session`. The session ID is stored in `localStorage` so returning visitors resume their conversation.
+    A chat session is created via `POST /api/session`. The session ID is stored in `localStorage` so returning visitors resume their conversation.
   </Step>
   <Step title="Open a WebSocket">
     A persistent WebSocket connection is established at `/ws/chat` for real-time messaging between the visitor and your agent.
   </Step>
   <Step title="Ready to chat">
-    The widget renders in the corner of the page. Visitors can type messages, use voice input, and interact with any registered tools.
+    The widget renders. Visitors can type messages, use voice input, and interact with any registered tools.
   </Step>
 </Steps>
 
@@ -143,6 +194,18 @@ All visual customization is managed from the **Dashboard**. The widget automatic
   On mobile screens narrower than 440px, the widget automatically expands to full screen for a better experience.
 </Note>
 
+If you use the SDK, you can also override colors and light/dark mode at runtime — see [Theming](/widget/theming).
+
+---
+
+## Removing the widget
+
+Call `destroy()` on the SDK handle to close the connection and tear the widget down. This is useful in single-page apps when unmounting a view:
+
+```typescript
+zephlo.destroy();
+```
+
 ---
 
 ## TypeScript support
@@ -163,7 +226,7 @@ import type { ZephloInstance, ToolDefinition, McpToolResult } from "zephlo";
 
 ## Next steps
 
-<CardGroup cols={3}>
+<CardGroup cols={2}>
   <Card title="Register tools" icon="wrench" href="/widget/tools">
     Give your agent the ability to take actions on your website.
   </Card>
@@ -172,5 +235,11 @@ import type { ZephloInstance, ToolDefinition, McpToolResult } from "zephlo";
   </Card>
   <Card title="Page context" icon="map-pin" href="/widget/page-context">
     Send page context so the agent gives smarter, more relevant answers.
+  </Card>
+  <Card title="Proactive triggers" icon="bell" href="/widget/triggers">
+    Have the agent reach out to visitors first.
+  </Card>
+  <Card title="Theming" icon="palette" href="/widget/theming">
+    Match the widget's colors and mode to your brand.
   </Card>
 </CardGroup>

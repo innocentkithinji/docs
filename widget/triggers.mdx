@@ -1,0 +1,178 @@
+---
+title: "Proactive triggers"
+description: "Have the agent reach out first — a nudge, an offer, or a contextual tip"
+icon: "bell"
+---
+
+## Overview
+
+By default the agent waits for the visitor to start the conversation. **Triggers** let you flip that around: you fire a trigger from your own page code, and the agent generates a message and shows it to the visitor — proactively.
+
+Use triggers for things like:
+
+- Greeting a visitor who has been idle on the pricing page
+- Offering help when someone reaches the third step of a checkout
+- Surfacing a relevant tip after the visitor performs an action
+
+The `prompt` you pass is an **instruction to the agent**, not text shown verbatim. The agent reads it, decides what to say, and produces a natural reply.
+
+---
+
+## Quick start
+
+<CodeGroup>
+```html Script tag + inline SDK
+<script src="https://unpkg.com/zephlo/dist/zephlo.js"></script>
+<zephlo-fab></zephlo-fab>
+<script>
+  const zephlo = Zephlo.initialize({
+    key: "flk_your_api_key",
+    chatbotId: "YOUR_AGENT_ID",
+  });
+
+  // Nudge the visitor after 10 seconds on the page
+  setTimeout(() => {
+    zephlo.trigger("pricing_help", "Offer to answer questions about our pricing plans");
+  }, 10_000);
+</script>
+```
+
+```typescript NPM SDK
+import Zephlo from "zephlo";
+
+const zephlo = Zephlo.initialize({
+  key: "flk_your_api_key",
+  chatbotId: "YOUR_AGENT_ID",
+});
+
+zephlo.trigger("pricing_help", "Offer to answer questions about our pricing plans");
+```
+</CodeGroup>
+
+---
+
+## API
+
+### `trigger(id, prompt, options?)`
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | `string` | Yes | A stable identifier for this trigger. Used by the cooldown system to remember whether it has fired |
+| `prompt` | `string` | Yes | The instruction the agent uses to generate its message |
+| `options` | `object` | No | Display mode, cooldown, and page context (see below) |
+
+Returns a promise that resolves to `{ fired: boolean }`. `fired` is `false` when a cooldown blocked the call.
+
+```typescript
+const { fired } = await zephlo.trigger(
+  "cart_abandon",
+  "Encourage the visitor to complete their purchase",
+  { mode: "prompt", cooldown: "session" }
+);
+```
+
+### Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `mode` | `"open" \| "prompt"` | `"prompt"` | How the message is shown (see below) |
+| `cooldown` | `CooldownPolicy` | `null` | How often the trigger may fire (see below) |
+| `pageContext` | `Record<string, unknown>` | `{}` | Extra page data sent alongside the trigger, just like [page context](/widget/page-context) |
+
+---
+
+## Display modes
+
+<CardGroup cols={2}>
+  <Card title="prompt (default)" icon="message-dots">
+    The agent's reply appears as a small clickable bubble next to the floating button. Clicking it opens the chat. The message is saved to the conversation either way.
+  </Card>
+  <Card title="open" icon="window-maximize">
+    The chat panel expands automatically and the agent's message appears in the thread.
+  </Card>
+</CardGroup>
+
+```typescript
+// Subtle bubble next to the button
+zephlo.trigger("idle_nudge", "Greet the visitor and offer help", { mode: "prompt" });
+
+// Pop the chat open with the message
+zephlo.trigger("vip_offer", "Tell the visitor about the launch discount", { mode: "open" });
+```
+
+<Note>
+  In `prompt` mode the bubble auto-dismisses after about 15 seconds. The message stays in the conversation history regardless of whether the visitor clicks it.
+</Note>
+
+---
+
+## Cooldowns
+
+A trigger usually shouldn't fire on every page load. The `cooldown` option throttles how often a given `id` is allowed to fire on a visitor's device.
+
+| Policy | Behavior |
+|--------|----------|
+| `null` (default) | Always fires |
+| `"session"` | Once per browser tab/session |
+| `"once"` | Once forever on this device |
+| `{ minutes: N }` | At most once every `N` minutes |
+
+```typescript
+// Greet once per browsing session
+zephlo.trigger("welcome", "Welcome the visitor to the site", { cooldown: "session" });
+
+// Show a one-time announcement
+zephlo.trigger("new_feature", "Announce the new analytics dashboard", { cooldown: "once" });
+
+// Re-offer help at most every 30 minutes
+zephlo.trigger("need_help", "Ask if the visitor needs any help", { cooldown: { minutes: 30 } });
+```
+
+<Tip>
+  Cooldown state is keyed by the trigger `id`, so keep ids stable and unique. Changing an id resets its cooldown.
+</Tip>
+
+---
+
+## Sending page context with a trigger
+
+The `pageContext` option lets the agent tailor its message to what the visitor is looking at — the same idea as [page context](/widget/page-context), but bundled into the trigger call.
+
+```typescript
+zephlo.trigger(
+  "plan_help",
+  "Offer to explain what's included in the plan the visitor is viewing",
+  {
+    mode: "prompt",
+    cooldown: "session",
+    pageContext: { plan: "Pro", price: "$49/mo", billing: "monthly" },
+  }
+);
+```
+
+---
+
+## Firing before initialization
+
+`Zephlo.trigger(...)` is also available as a **global**. If you call it before `Zephlo.initialize()` has run, it waits for initialization and then fires — handy when your trigger logic and your init script live in different places.
+
+```html
+<script src="https://unpkg.com/zephlo/dist/zephlo.js"></script>
+<script>
+  // This is safe even though initialize() runs later on the page.
+  Zephlo.trigger("early_nudge", "Greet the visitor", { cooldown: "session" });
+</script>
+```
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Page context" icon="map-pin" href="/widget/page-context">
+    Keep the agent informed about where the visitor is.
+  </Card>
+  <Card title="Theming" icon="palette" href="/widget/theming">
+    Match the widget's colors and mode to your brand.
+  </Card>
+</CardGroup>

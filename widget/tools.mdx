@@ -21,7 +21,7 @@ import Zephlo from "zephlo";
 
 const zephlo = Zephlo.initialize({
   key: "flk_your_api_key",
-  chatbotId: "YOUR_CHATBOT_ID",
+  chatbotId: "YOUR_AGENT_ID",
 });
 
 zephlo.registerTool({
@@ -270,6 +270,14 @@ for (const tool of tools) {
   console.log(tool.name, tool.description);
 }
 ```
+
+---
+
+## WebMCP browser integration
+
+Zephlo implements the emerging [WebMCP](https://github.com/webmachinelearning/webmcp) browser standard. When you register a tool, it's also published to `navigator.modelContext` if the browser (or an agentic extension) supports it. Conversely, any tools other scripts have registered on `navigator.modelContext` are **automatically discovered** and made available to your agent.
+
+This means your tools can be shared with the visitor's own AI assistant, and tools provided by other parts of your page work with Zephlo — no extra wiring. The standard API works everywhere regardless of browser support, so you don't need to feature-detect it.
 
 ---
 
